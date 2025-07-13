@@ -1,13 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { useSearchParams } from "next/navigation";
 
 function Admission() {
-  const searchParams = useSearchParams();
-  const collegeId = searchParams.get("collegeId");
-  const collegeName = searchParams.get("collegeName");
-
   const getTodayDate = () => {
     const today = new Date();
     return today.toISOString().split("T")[0]; // yyyy-mm-dd
@@ -49,8 +44,6 @@ function Admission() {
         phone: formData.phone,
         address: formData.address,
         dob: formData.dob,
-        collegeId,
-        collegeName,
         imageUrl: formData.imageUrl,
       };
 
@@ -85,11 +78,6 @@ function Admission() {
       <h2 className="text-2xl font-bold mb-2 text-center text-[#3DB371]">
         Apply for Admission
       </h2>
-      {collegeName && (
-        <p className="text-center mb-6 text-gray-500">
-          College: <span className="font-semibold">{collegeName}</span>
-        </p>
-      )}
 
       {message && (
         <p className="text-center mb-4 text-green-600 font-semibold">{message}</p>
