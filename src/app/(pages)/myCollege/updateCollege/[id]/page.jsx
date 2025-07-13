@@ -1,17 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
+import React, { useEffect, useState } from "react";
 
-function Admission() {
-  const searchParams = useSearchParams();
-  const collegeId = searchParams.get("collegeId");
-  const collegeName = searchParams.get("collegeName");
-
-  const getTodayDate = () => {
-    const today = new Date();
-    return today.toISOString().split("T")[0]; // yyyy-mm-dd
-  };
+function Page() {
+  const params = useParams();
+  const id = params?.id;
 
   const [formData, setFormData] = useState({
     name: "",
@@ -19,72 +13,82 @@ function Admission() {
     email: "",
     phone: "",
     address: "",
-    dob: getTodayDate(),
+    dob: "",
     imageUrl: "",
   });
 
   const [preview, setPreview] = useState(null);
+  const [collegeName, setCollegeName] = useState("");
   const [message, setMessage] = useState("");
+
+  // Fetch admission data by id
+  useEffect(() => {
+    if (!id) return;
+
+    const fetchData = async () => {
+      try {
+        const res = await fetch("/api/admission");
+        const data = await res.json();
+
+        const matched = data.find((item) => item._id === id);
+
+        if (matched) {
+          setFormData({
+            name: matched.name || "",
+            subject: matched.subject || "",
+            email: matched.email || "",
+            phone: matched.phone || "",
+            address: matched.address || "",
+            dob: matched.dob || "",
+            imageUrl: matched.imageUrl || "",
+          });
+          setPreview(matched.imageUrl);
+          setCollegeName(matched.collegeName || "");
+        }
+      } catch (error) {
+        console.error("Fetch failed:", error);
+      }
+    };
+
+    fetchData();
+  }, [id]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
 
     if (name === "imageUrl") {
-      setFormData({ ...formData, imageUrl: value });
       setPreview(value);
-    } else {
-      setFormData({ ...formData, [name]: value });
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage("");
 
     try {
-      const payload = {
-        name: formData.name,
-        subject: formData.subject,
-        email: formData.email,
-        phone: formData.phone,
-        address: formData.address,
-        dob: formData.dob,
-        collegeId,
-        collegeName,
-        imageUrl: formData.imageUrl,
-      };
-
-      const response = await fetch("/api/addAdmission", {
-        method: "POST",
+      const response = await fetch("/api/updateAdmission", {
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ _id: id, ...formData }),
       });
 
       if (response.ok) {
-        setMessage("Admission submitted successfully!");
-        setFormData({
-          name: "",
-          subject: "",
-          email: "",
-          phone: "",
-          address: "",
-          dob: getTodayDate(),
-          imageUrl: "",
-        });
-        setPreview(null);
+        setMessage("Updated successfully!");
       } else {
-        setMessage("Submission failed. Try again!");
+        setMessage("Update failed!");
       }
-    } catch (error) {
-      setMessage("Something went wrong. Try again!");
+    } catch (err) {
+      console.error(err);
+      setMessage("Something went wrong!");
     }
   };
 
   return (
     <div className="max-w-2xl mx-auto p-6 mt-10 bg-white shadow-lg rounded-xl">
       <h2 className="text-2xl font-bold mb-2 text-center text-[#3DB371]">
-        Apply for Admission
+        Edit Admission
       </h2>
+
       {collegeName && (
         <p className="text-center mb-6 text-gray-500">
           College: <span className="font-semibold">{collegeName}</span>
@@ -103,7 +107,7 @@ function Admission() {
           value={formData.name}
           onChange={handleChange}
           required
-          className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#3DB371]"
+          className="w-full px-4 py-2 border rounded-md"
         />
 
         <select
@@ -111,7 +115,7 @@ function Admission() {
           value={formData.subject}
           onChange={handleChange}
           required
-          className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#3DB371]"
+          className="w-full px-4 py-2 border rounded-md"
         >
           <option value="">Select Subject</option>
           <option value="Computer Science">Computer Science</option>
@@ -127,7 +131,7 @@ function Admission() {
           value={formData.email}
           onChange={handleChange}
           required
-          className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#3DB371]"
+          className="w-full px-4 py-2 border rounded-md"
         />
 
         <input
@@ -137,7 +141,7 @@ function Admission() {
           value={formData.phone}
           onChange={handleChange}
           required
-          className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#3DB371]"
+          className="w-full px-4 py-2 border rounded-md"
         />
 
         <input
@@ -147,7 +151,7 @@ function Admission() {
           value={formData.address}
           onChange={handleChange}
           required
-          className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#3DB371]"
+          className="w-full px-4 py-2 border rounded-md"
         />
 
         <input
@@ -156,7 +160,7 @@ function Admission() {
           value={formData.dob}
           onChange={handleChange}
           required
-          className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#3DB371]"
+          className="w-full px-4 py-2 border rounded-md"
         />
 
         <input
@@ -166,7 +170,7 @@ function Admission() {
           value={formData.imageUrl}
           onChange={handleChange}
           required
-          className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#3DB371]"
+          className="w-full px-4 py-2 border rounded-md"
         />
 
         {preview && (
@@ -179,13 +183,13 @@ function Admission() {
 
         <button
           type="submit"
-          className="w-full bg-[#3DB371] hover:bg-[#34a763] text-white font-bold py-2 px-4 rounded-md transition-all duration-300"
+          className="w-full bg-[#3DB371] text-white font-bold py-2 px-4 rounded-md"
         >
-          Submit Admission
+          Update Admission
         </button>
       </form>
     </div>
   );
 }
 
-export default Admission;
+export default Page;

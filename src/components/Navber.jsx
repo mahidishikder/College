@@ -7,7 +7,7 @@ function Navber() {
   <li><Link href={`/`}>Home</Link> </li>
   <li><Link href='/gallery'>Gallery</Link> </li>
   <li><Link href={`/college`}>College</Link> </li>
-  <li><Link href={`/admission`}>Admission</Link> </li>
+  <li><Link href={`/myCollege`}>My College</Link> </li>
   <li><Link href={`/about`}>About</Link> </li>
   <li><Link href={`/contact`}>Contact</Link> </li>
 
