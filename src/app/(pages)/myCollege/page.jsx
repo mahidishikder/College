@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
+import Swal from "sweetalert2";
 
 function MyCollege() {
   const [applications, setApplications] = useState([]);
@@ -24,26 +25,53 @@ function MyCollege() {
     }
   };
 
-  const handleDelete = (id) => {
-    const confirmDelete = window.confirm("Are you sure to delete?");
-    if (!confirmDelete) return;
-  
-    fetch(`/api/deleteAdmission/${id}`, {
-      method: "DELETE",
-    })
-      .then((res) => {
-        if (res.ok) {
-          setApplications((prev) => prev.filter((app) => app._id !== id));
-          setMessage("Deleted successfully.");
-        } else {
-          setMessage("Delete failed.");
-        }
-      })
-      .catch(() => {
-        setMessage("Error deleting data.");
+  const handleDelete = async (id) => {
+    const confirmResult = await Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+    });
+
+    if (!confirmResult.isConfirmed) return;
+
+    try {
+      const res = await fetch("/api/deleteAdmission", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
       });
+
+      if (res.ok) {
+        setApplications((prev) => prev.filter((app) => app._id !== id));
+
+        Swal.fire({
+          icon: "success",
+          title: "Deleted!",
+          text: "Your application has been deleted.",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+      } else {
+        const errorText = await res.text();
+        Swal.fire({
+          icon: "error",
+          title: "Delete Failed!",
+          text: errorText || "Something went wrong.",
+        });
+      }
+    } catch (error) {
+      console.error("Delete error:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error!",
+        text: "An error occurred while deleting.",
+      });
+    }
   };
-  
 
   return (
     <div className="max-w-6xl mx-auto my-15 p-6">
@@ -85,12 +113,11 @@ function MyCollege() {
                   <td className="p-2 border">{app.dob}</td>
                   <td className="p-2 border">{app.collegeName}</td>
                   <td className="p-2 border flex flex-col gap-1">
-                  <Link href={`/myCollege/updateCollege/${app._id}`}>
-  <button className="bg-blue-500 text-white px-2 py-1 rounded text-sm">
-    Edit
-  </button>
-</Link>
-
+                    <Link href={`/myCollege/updateCollege/${app._id}`}>
+                      <button className="bg-blue-500 text-white px-2 py-1 rounded text-sm">
+                        Edit
+                      </button>
+                    </Link>
 
                     <button
                       className="bg-red-500 text-white px-2 py-1 rounded text-sm"
