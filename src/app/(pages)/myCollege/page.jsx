@@ -3,21 +3,40 @@
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import Swal from "sweetalert2";
+import { useUser } from "@clerk/nextjs";
 
 function MyCollege() {
+  const { user, isSignedIn } = useUser();
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    fetchApplications();
-  }, []);
+    if (isSignedIn) {
+      fetchApplications();
+    } else {
+      setApplications([]); // লগআউট থাকলে খালি দেখাবে
+      setLoading(false);
+    }
+  }, [isSignedIn]);
 
   const fetchApplications = async () => {
     try {
       const res = await fetch("/api/admission");
       const data = await res.json();
-      setApplications(data || []);
+
+      // ইউজারের ইমেইল অনুযায়ী ফিল্টার
+      const filteredApps = Array.isArray(data)
+        ? data.filter(
+            (app) =>
+              app.email &&
+              user?.emailAddresses?.some(
+                (emailObj) => emailObj.emailAddress === app.email
+              )
+          )
+        : [];
+
+      setApplications(filteredApps);
       setLoading(false);
     } catch (err) {
       setMessage("Failed to load data.");
@@ -72,6 +91,13 @@ function MyCollege() {
       });
     }
   };
+
+  if (!isSignedIn)
+    return (
+      <p className="text-center mt-10 text-red-500 font-semibold">
+        Please sign in to see your applications.
+      </p>
+    );
 
   return (
     <div className="max-w-6xl mx-auto my-15 p-6">

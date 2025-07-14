@@ -1,8 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useUser } from "@clerk/nextjs";
 
 function Admission() {
+  const { user, isSignedIn } = useUser();
+
   const getTodayDate = () => {
     const today = new Date();
     return today.toISOString().split("T")[0]; // yyyy-mm-dd
@@ -17,6 +20,16 @@ function Admission() {
     dob: getTodayDate(),
     imageUrl: "",
   });
+
+  // ইউজার লগইন থাকলে ইমেইল ফিল্ডে সেট করবো
+  useEffect(() => {
+    if (isSignedIn && user?.emailAddresses?.length > 0) {
+      setFormData((prev) => ({
+        ...prev,
+        email: user.emailAddresses[0].emailAddress,
+      }));
+    }
+  }, [isSignedIn, user]);
 
   const [preview, setPreview] = useState(null);
   const [message, setMessage] = useState("");
@@ -58,7 +71,7 @@ function Admission() {
         setFormData({
           name: "",
           subject: "",
-          email: "",
+          email: isSignedIn && user?.emailAddresses?.length > 0 ? user.emailAddresses[0].emailAddress : "",
           phone: "",
           address: "",
           dob: getTodayDate(),
@@ -116,6 +129,7 @@ function Admission() {
           onChange={handleChange}
           required
           className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#3DB371]"
+          readOnly={isSignedIn} // লগইন করলে ইমেইল ফিল্ড readonly হবে
         />
 
         <input

@@ -2,8 +2,10 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { useUser } from "@clerk/nextjs";
 
 export default function CollegesPage() {
+  const { isSignedIn } = useUser(); // Clerk user status
   const [colleges, setColleges] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -15,7 +17,6 @@ export default function CollegesPage() {
         const data = await res.json();
 
         console.log("Fetched colleges data:", data);
-
         setColleges(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("Error fetching colleges:", error);
@@ -57,7 +58,11 @@ export default function CollegesPage() {
               <p className="text-gray-600">
                 Research Papers: {college.researchHistory}
               </p>
-              <Link href={`/college/${college._id}`}>
+
+              {/* ✅ Conditional Redirect */}
+              <Link
+                href={isSignedIn ? `/college/${college._id}` : "/sign-in"}
+              >
                 <button className="mt-3 px-4 py-2 bg-[#239954] text-white rounded hover:bg-[#239954b9]">
                   Details
                 </button>
